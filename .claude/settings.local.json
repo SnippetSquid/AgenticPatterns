@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:docs.langchain.com)",
+      "WebFetch(domain:python.langchain.com)",
+      "WebSearch",
+      "mcp__docs-langchain__SearchDocsByLangChain"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
