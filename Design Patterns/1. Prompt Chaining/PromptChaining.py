@@ -31,32 +31,32 @@ llm = ChatOpenAI(
 )
 
 # Define the first prompt: Generate a product name
-prompt1 = ChatPromptTemplate.from_template(
+generate_name_prompt = ChatPromptTemplate.from_template(
     "Generate a creative product name for: {product_description}\n"
     "Only return the product name, nothing else."
 )
 
 # Define the second prompt: Create a marketing slogan from the product name
-prompt2 = ChatPromptTemplate.from_template(
+generate_slogan_prompt = ChatPromptTemplate.from_template(
     "Create a catchy marketing slogan for a product called: {product_name}\n"
     "The slogan should be memorable and under 10 words."
 )
 
 # Define the third prompt: Write a short product description
-prompt3 = ChatPromptTemplate.from_template(
+generate_description_prompt = ChatPromptTemplate.from_template(
     "Write a 2-sentence product description for '{product_name}' with the slogan: '{slogan}'\n"
     "Make it compelling and highlight key benefits."
 )
 
 # Create the chain using the pipe operator (|)
 # Chain 1: product_description -> product_name
-chain1 = prompt1 | llm | StrOutputParser()
+chain1 = generate_name_prompt | llm | StrOutputParser()
 
 # Chain 2: product_name -> slogan
-chain2 = prompt2 | llm | StrOutputParser()
+chain2 = generate_slogan_prompt | llm | StrOutputParser()
 
 # Chain 3: product_name + slogan -> description
-chain3 = prompt3 | llm | StrOutputParser()
+chain3 = generate_description_prompt | llm | StrOutputParser()
 
 # ============================================================
 # EXAMPLE: Smart Water Bottle
