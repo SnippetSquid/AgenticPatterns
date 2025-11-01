@@ -9,7 +9,7 @@ with conditional routing - perfect for iterative refinement.
 import os
 import sys
 from pathlib import Path
-from typing import List, TypedDict, Annotated
+from typing import List, TypedDict, Annotated, Dict, Any
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -45,11 +45,24 @@ llm = ChatOpenAI(
 # ============================================================
 
 class Critique(BaseModel):
-    """Structured feedback from the Critic agent"""
+    """Structured feedback from the Critic agent with multi-dimensional scoring"""
     overall_assessment: str = Field(description="Brief overall assessment of the draft")
     strengths: List[str] = Field(description="List of strengths in the current draft")
     issues: List[str] = Field(description="List of specific issues that need improvement")
-    quality_score: int = Field(description="Quality score from 1-100, where 80+ means ready to publish. Be specific and use the full range to show incremental improvements.")
+
+    # Multi-dimensional scores (1-100 each)
+    clarity_score: int = Field(description="Clarity: Is the writing clear and easy to understand? (1-100)")
+    structure_score: int = Field(description="Structure: Does it have good flow and logical organization? (1-100)")
+    engagement_score: int = Field(description="Engagement: Is it interesting and does it hook the reader? (1-100)")
+    accuracy_score: int = Field(description="Accuracy: Is the content accurate and well-reasoned? (1-100)")
+    completeness_score: int = Field(description="Completeness: Does it adequately cover the topic? (1-100)")
+    cta_score: int = Field(description="Call-to-action: Is there a clear and compelling CTA? (1-100)")
+
+    @property
+    def overall_score(self) -> int:
+        """Calculate overall score as average of all dimensions"""
+        return (self.clarity_score + self.structure_score + self.engagement_score +
+                self.accuracy_score + self.completeness_score + self.cta_score) // 6
 
 
 # ============================================================
@@ -63,6 +76,7 @@ class ReflectionState(TypedDict):
     feedback_history: Annotated[List[str], operator.add]
     iteration: int
     quality_score: int
+    score_history: Annotated[List[Dict[str, Any]], operator.add]  # List of score snapshots
     max_iterations: int
     target_score: int
 
@@ -144,21 +158,51 @@ Evaluate the following blog post on the topic: "{state["topic"]}"
 Blog Post:
 {state["draft"]}
 
-Evaluate the post based on these criteria:
-    1. **Clarity**: Is the writing clear and easy to understand?
-    2. **Structure**: Does it have good flow and logical organization?
-    3. **Engagement**: Is it interesting and does it hook the reader?
-    4. **Accuracy**: Is the content accurate and well-reasoned?
-    5. **Completeness**: Does it adequately cover the topic?
-    6. **Call-to-action**: Is there a clear and compelling CTA?
+Evaluate the post on SIX specific dimensions (each scored 1-100):
 
-    Provide structured feedback with:
-    - Overall assessment (brief summary)
-    - List of strengths (what's working well)
-    - List of specific issues to address (be specific and actionable)
-    - Quality score (1-100, where 80+ means ready to publish)
+1. **Clarity** (1-100): Is the writing clear and easy to understand? Are sentences concise? Is jargon explained?
+   - 60-69: Confusing sections, unclear wording
+   - 70-79: Mostly clear with minor issues
+   - 80-89: Clear and well-written
+   - 90-100: Exceptionally clear and crisp
 
-    IMPORTANT: Use the full 1-100 range. Scores: 60-69 = significant issues, 70-79 = good but needs work, 80+ = publication-ready.
+2. **Structure** (1-100): Does it have good flow and logical organization? Are transitions smooth?
+   - 60-69: Poor organization, lacks flow
+   - 70-79: Decent structure with some issues
+   - 80-89: Well-organized and logical
+   - 90-100: Perfect structure and flow
+
+3. **Engagement** (1-100): Does it hook the reader? Is it interesting throughout?
+   - 60-69: Boring, lacks hook
+   - 70-79: Somewhat engaging
+   - 80-89: Engaging and interesting
+   - 90-100: Highly compelling
+
+4. **Accuracy** (1-100): Is the content accurate, well-reasoned, and credible?
+   - 60-69: Questionable claims or logic
+   - 70-79: Mostly accurate with minor issues
+   - 80-89: Accurate and well-reasoned
+   - 90-100: Exceptionally credible
+
+5. **Completeness** (1-100): Does it adequately cover the topic? Are examples sufficient?
+   - 60-69: Missing key information
+   - 70-79: Covers basics but lacks depth
+   - 80-89: Thorough coverage
+   - 90-100: Comprehensive and complete
+
+6. **Call-to-action** (1-100): Is there a clear, specific, and compelling CTA?
+   - 60-69: Weak or missing CTA
+   - 70-79: Generic CTA
+   - 80-89: Clear and actionable CTA
+   - 90-100: Highly compelling CTA
+
+Provide structured feedback with:
+- Overall assessment (brief summary)
+- List of strengths (what's working well)
+- List of specific issues to address (be specific and actionable)
+- Individual score for EACH of the 6 dimensions
+
+IMPORTANT: Use the full 1-100 range. Be specific and show meaningful differences between iterations.
     """
 
     structured_llm = llm.with_structured_output(Critique)
@@ -166,7 +210,16 @@ Evaluate the post based on these criteria:
 
     print(f"\n--- EDITORIAL FEEDBACK ---")
     print(f"Overall Assessment: {critique.overall_assessment}")
-    print(f"\nQuality Score: {critique.quality_score}/100")
+
+    print(f"\n📊 Dimensional Scores:")
+    print(f"  Clarity:       {critique.clarity_score}/100")
+    print(f"  Structure:     {critique.structure_score}/100")
+    print(f"  Engagement:    {critique.engagement_score}/100")
+    print(f"  Accuracy:      {critique.accuracy_score}/100")
+    print(f"  Completeness:  {critique.completeness_score}/100")
+    print(f"  CTA:           {critique.cta_score}/100")
+    print(f"  ─────────────────────────")
+    print(f"  Overall:       {critique.overall_score}/100")
 
     print(f"\nStrengths:")
     for strength in critique.strengths:
@@ -178,9 +231,23 @@ Evaluate the post based on these criteria:
             print(f"  - {issue}")
     print()
 
+    # Create score snapshot for history tracking (use dict instead of TypedDict)
+    score_snapshot = {
+        "iteration": iteration,
+        "clarity": critique.clarity_score,
+        "structure": critique.structure_score,
+        "engagement": critique.engagement_score,
+        "accuracy": critique.accuracy_score,
+        "completeness": critique.completeness_score,
+        "cta": critique.cta_score,
+        "overall": critique.overall_score
+    }
+
+
     # Prepare feedback for next iteration
     feedback_parts = [f"Overall: {critique.overall_assessment}"]
-    feedback_parts.append(f"Current score: {critique.quality_score}/100")
+    feedback_parts.append(f"Current overall score: {critique.overall_score}/100")
+    feedback_parts.append(f"Dimension scores - Clarity:{critique.clarity_score} Structure:{critique.structure_score} Engagement:{critique.engagement_score} Accuracy:{critique.accuracy_score} Completeness:{critique.completeness_score} CTA:{critique.cta_score}")
 
     for issue in critique.issues:
         feedback_parts.append(f"- {issue}")
@@ -189,7 +256,8 @@ Evaluate the post based on these criteria:
 
     return {
         "feedback_history": [new_feedback],
-        "quality_score": critique.quality_score,
+        "quality_score": critique.overall_score,
+        "score_history": [score_snapshot],
         "iteration": state["iteration"] + 1
     }
 
@@ -228,7 +296,7 @@ def create_reflection_graph():
     """
     Creates the reflection graph with Producer and Critic nodes.
     """
-    # Create the graph
+    # Create the graph with explicit configuration for list accumulation
     workflow = StateGraph(ReflectionState)
 
     # Add nodes
@@ -252,6 +320,7 @@ def create_reflection_graph():
     )
 
     # Compile the graph
+    # Note: The Annotated[List[...], operator.add] in TypedDict should handle accumulation
     return workflow.compile()
 
 
@@ -280,6 +349,7 @@ initial_state = {
     "feedback_history": [],
     "iteration": 1,
     "quality_score": 0,
+    "score_history": [],
     "max_iterations": max_iterations,
     "target_score": target_score
 }
@@ -299,22 +369,70 @@ config = RunnableConfig(
 
 print(f"Thread ID: {thread_id}\n")
 
-# Run the graph
-for output in app.stream(initial_state, config):
-    # Print iteration separator when critic completes
-    if "critic" in output:
-        print("=" * 80)
-        print(f"ITERATION {output['critic']['iteration'] - 1}")
-        print("=" * 80)
+# Run the graph with streaming (mode="values" gives full state, not just updates)
+final_state = None
+iteration_count = 0
+for state_snapshot in app.stream(initial_state, config, stream_mode="values"):
+    # Track the complete state at each step
+    final_state = state_snapshot
 
-# Get final state
-final_state = output[list(output.keys())[0]]
+    # Check if we just completed a critic evaluation (iteration increased)
+    if state_snapshot.get("iteration", 1) > iteration_count + 1:
+        iteration_count = state_snapshot["iteration"] - 1
+        print("=" * 80)
+        print(f"ITERATION {iteration_count}")
+        print("=" * 80)
 
 print(f"\n{'=' * 80}")
 print("REFLECTION PROCESS COMPLETE")
 print(f"{'=' * 80}")
 print(f"Total Iterations: {final_state['iteration'] - 1}")
 print(f"Final Quality Score: {final_state['quality_score']}/100 (Target: {target_score}+)")
+
+# Display score evolution
+print(f"\n{'=' * 80}")
+print("SCORE EVOLUTION ACROSS ITERATIONS")
+print(f"{'=' * 80}\n")
+
+score_history = final_state['score_history']
+
+# Print header
+print(f"{'Iter':<6} {'Clarity':<9} {'Structure':<11} {'Engage':<9} {'Accuracy':<10} {'Complete':<10} {'CTA':<6} {'Overall':<8}")
+print("─" * 80)
+
+# Print each iteration's scores
+for snapshot in score_history:
+    print(f"{snapshot['iteration']:<6} "
+          f"{snapshot['clarity']:<9} "
+          f"{snapshot['structure']:<11} "
+          f"{snapshot['engagement']:<9} "
+          f"{snapshot['accuracy']:<10} "
+          f"{snapshot['completeness']:<10} "
+          f"{snapshot['cta']:<6} "
+          f"{snapshot['overall']:<8}")
+
+# Calculate improvements
+if len(score_history) > 1:
+    first = score_history[0]
+    last = score_history[-1]
+
+    print("\n" + "─" * 80)
+    print("IMPROVEMENTS FROM FIRST TO FINAL DRAFT:")
+    print("─" * 80)
+
+    improvements = {
+        "Clarity": last['clarity'] - first['clarity'],
+        "Structure": last['structure'] - first['structure'],
+        "Engagement": last['engagement'] - first['engagement'],
+        "Accuracy": last['accuracy'] - first['accuracy'],
+        "Completeness": last['completeness'] - first['completeness'],
+        "CTA": last['cta'] - first['cta'],
+        "Overall": last['overall'] - first['overall']
+    }
+
+    for dimension, improvement in improvements.items():
+        sign = "+" if improvement >= 0 else ""
+        print(f"  {dimension:<14} {sign}{improvement:>3} points")
 
 print("\n" + "=" * 80)
 
