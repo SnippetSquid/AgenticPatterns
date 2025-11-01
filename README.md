@@ -18,9 +18,6 @@ Break complex tasks into sequential steps where each prompt's output feeds into 
 - Data transformation pipelines
 - Tasks requiring validation between steps
 
-**Key files:**
-- `PromptChaining.py` - Working implementation with examples
-- `PromptChaining.md` - Conceptual overview
 
 ### 2. Routing
 **Location:** `Design Patterns/2. Routing/`
@@ -32,9 +29,6 @@ Use an LLM to analyze input and dynamically route it to specialized handlers. Th
 - Multi-intent chatbots
 - Content categorization and specialized processing
 
-**Key files:**
-- `Routing.py` - Customer service routing example
-- `Routing.md` - Conceptual overview with routing mechanisms
 
 ### 3. Parallelization
 **Location:** `Design Patterns/3. Parallelization/`
@@ -47,20 +41,29 @@ Execute multiple independent LLM operations concurrently to dramatically reduce 
 - Parallel data analysis or classification tasks
 - Multi-aspect evaluation (sentiment, topics, entities) in parallel
 
-**Key files:**
-- `Parallelization.py` - Sequential vs parallel execution comparison
-- `Parallelization.md` - Conceptual overview with performance analysis
+
+### 4. Reflection
+**Location:** `Design Patterns/4. Reflection/`
+
+Enable agents to evaluate and iteratively improve their own outputs through a Producer-Critic model. This pattern uses LangGraph's stateful workflows to implement cyclic refinement, where a Critic agent provides structured feedback and a Producer agent incorporates improvements across multiple iterations.
+
+**Use cases:**
+- High-quality content creation requiring polish and refinement
+- Tasks with complex quality criteria or style requirements
+- Scenarios where iterative improvement adds significant value
+- Self-improving systems that learn from feedback
+
 
 ## Getting Started
 
 ### Prerequisites
-- Python 3.8+
-- OpenAI API key
+- See requirements.txt
 
 
 ## Technologies Used
 
 - **[LangChain](https://python.langchain.com/)** - Framework for building LLM applications
+- **[LangGraph](https://langchain-ai.github.io/langgraph/)** - Framework for building stateful, multi-agent workflows with cycles
 - **[OpenAI](https://openai.com/)** - LLM provider (GPT-4o-mini)
 - **[Python-dotenv](https://github.com/theskumar/python-dotenv)** - Environment configuration
 - **[Pydantic](https://docs.pydantic.dev/)** - Data validation and structured outputs
@@ -68,9 +71,7 @@ Execute multiple independent LLM operations concurrently to dramatically reduce 
 ## Learning Resources
 
 - [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction)
+- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
 - [OpenAI API Documentation](https://platform.openai.com/docs/introduction)
 - [Agentic AI Patterns Guide](https://www.anthropic.com/research/building-effective-agents)
 
-## License
-
-This is a learning repository intended for educational purposes.
