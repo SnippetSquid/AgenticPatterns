@@ -73,7 +73,7 @@ class ReflectionState(TypedDict):
     """State that flows through the reflection graph"""
     topic: str
     draft: str
-    feedback_history: Annotated[List[str], operator.add]
+    feedback_history: Annotated[List[str], operator.add]  # List of feedbacks
     iteration: int
     quality_score: int
     score_history: Annotated[List[Dict[str, Any]], operator.add]  # List of score snapshots
@@ -101,31 +101,31 @@ def producer_node(state: ReflectionState) -> ReflectionState:
         latest_feedback = state["feedback_history"][-1]
         previous_draft = state["draft"]
         feedback_instruction = f"""Previous draft:
----
-{previous_draft}
----
+        ---
+        {previous_draft}
+        ---
 
-Editorial feedback on this draft:
-{latest_feedback}
+        Editorial feedback on this draft:
+        {latest_feedback}
 
-Please revise the draft above to address all the issues mentioned in the feedback while preserving the strengths."""
+        Please revise the draft above to address all the issues mentioned in the feedback while preserving the strengths."""
 
     prompt = f"""You are a skilled blog writer creating engaging content.
 
-    {context}
+        {context}
 
-    Topic: {state["topic"]}
+        Topic: {state["topic"]}
 
-    Requirements:
-    - Write a blog post of approximately 300-400 words
-    - Include a compelling hook in the opening
-    - Use clear structure with logical flow
-    - Make it engaging and readable
-    - Include a call-to-action at the end
+        Requirements:
+        - Write a blog post of approximately 300-400 words
+        - Include a compelling hook in the opening
+        - Use clear structure with logical flow
+        - Make it engaging and readable
+        - Include a call-to-action at the end
 
-    {feedback_instruction}
+        {feedback_instruction}
 
-    Write the blog post:"""
+        Write the blog post:"""
 
     response = llm.invoke(prompt)
     draft = response.content
@@ -153,57 +153,57 @@ def critic_node(state: ReflectionState) -> ReflectionState:
 
     prompt = f"""You are an experienced blog editor providing constructive feedback.
 
-Evaluate the following blog post on the topic: "{state["topic"]}"
+        Evaluate the following blog post on the topic: "{state["topic"]}"
 
-Blog Post:
-{state["draft"]}
+        Blog Post:
+        {state["draft"]}
 
-Evaluate the post on SIX specific dimensions (each scored 1-100):
+        Evaluate the post on SIX specific dimensions (each scored 1-100):
 
-1. **Clarity** (1-100): Is the writing clear and easy to understand? Are sentences concise? Is jargon explained?
-   - 60-69: Confusing sections, unclear wording
-   - 70-79: Mostly clear with minor issues
-   - 80-89: Clear and well-written
-   - 90-100: Exceptionally clear and crisp
+        1. **Clarity** (1-100): Is the writing clear and easy to understand? Are sentences concise? Is jargon explained?
+        - 60-69: Confusing sections, unclear wording
+        - 70-79: Mostly clear with minor issues
+        - 80-89: Clear and well-written
+        - 90-100: Exceptionally clear and crisp
 
-2. **Structure** (1-100): Does it have good flow and logical organization? Are transitions smooth?
-   - 60-69: Poor organization, lacks flow
-   - 70-79: Decent structure with some issues
-   - 80-89: Well-organized and logical
-   - 90-100: Perfect structure and flow
+        2. **Structure** (1-100): Does it have good flow and logical organization? Are transitions smooth?
+        - 60-69: Poor organization, lacks flow
+        - 70-79: Decent structure with some issues
+        - 80-89: Well-organized and logical
+        - 90-100: Perfect structure and flow
 
-3. **Engagement** (1-100): Does it hook the reader? Is it interesting throughout?
-   - 60-69: Boring, lacks hook
-   - 70-79: Somewhat engaging
-   - 80-89: Engaging and interesting
-   - 90-100: Highly compelling
+        3. **Engagement** (1-100): Does it hook the reader? Is it interesting throughout?
+        - 60-69: Boring, lacks hook
+        - 70-79: Somewhat engaging
+        - 80-89: Engaging and interesting
+        - 90-100: Highly compelling
 
-4. **Accuracy** (1-100): Is the content accurate, well-reasoned, and credible?
-   - 60-69: Questionable claims or logic
-   - 70-79: Mostly accurate with minor issues
-   - 80-89: Accurate and well-reasoned
-   - 90-100: Exceptionally credible
+        4. **Accuracy** (1-100): Is the content accurate, well-reasoned, and credible?
+        - 60-69: Questionable claims or logic
+        - 70-79: Mostly accurate with minor issues
+        - 80-89: Accurate and well-reasoned
+        - 90-100: Exceptionally credible
 
-5. **Completeness** (1-100): Does it adequately cover the topic? Are examples sufficient?
-   - 60-69: Missing key information
-   - 70-79: Covers basics but lacks depth
-   - 80-89: Thorough coverage
-   - 90-100: Comprehensive and complete
+        5. **Completeness** (1-100): Does it adequately cover the topic? Are examples sufficient?
+        - 60-69: Missing key information
+        - 70-79: Covers basics but lacks depth
+        - 80-89: Thorough coverage
+        - 90-100: Comprehensive and complete
 
-6. **Call-to-action** (1-100): Is there a clear, specific, and compelling CTA?
-   - 60-69: Weak or missing CTA
-   - 70-79: Generic CTA
-   - 80-89: Clear and actionable CTA
-   - 90-100: Highly compelling CTA
+        6. **Call-to-action** (1-100): Is there a clear, specific, and compelling CTA?
+        - 60-69: Weak or missing CTA
+        - 70-79: Generic CTA
+        - 80-89: Clear and actionable CTA
+        - 90-100: Highly compelling CTA
 
-Provide structured feedback with:
-- Overall assessment (brief summary)
-- List of strengths (what's working well)
-- List of specific issues to address (be specific and actionable)
-- Individual score for EACH of the 6 dimensions
+        Provide structured feedback with:
+        - Overall assessment (brief summary)
+        - List of strengths (what's working well)
+        - List of specific issues to address (be specific and actionable)
+        - Individual score for EACH of the 6 dimensions
 
-IMPORTANT: Use the full 1-100 range. Be specific and show meaningful differences between iterations.
-    """
+        IMPORTANT: Use the full 1-100 range. Be specific and show meaningful differences between iterations.
+        """
 
     structured_llm = llm.with_structured_output(Critique)
     critique = structured_llm.invoke(prompt)
@@ -211,7 +211,7 @@ IMPORTANT: Use the full 1-100 range. Be specific and show meaningful differences
     print(f"\n--- EDITORIAL FEEDBACK ---")
     print(f"Overall Assessment: {critique.overall_assessment}")
 
-    print(f"\n📊 Dimensional Scores:")
+    print(f"\nDimensional Scores:")
     print(f"  Clarity:       {critique.clarity_score}/100")
     print(f"  Structure:     {critique.structure_score}/100")
     print(f"  Engagement:    {critique.engagement_score}/100")
