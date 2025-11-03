@@ -54,6 +54,46 @@ Enable agents to evaluate and iteratively improve their own outputs through a Pr
 - Self-improving systems that learn from feedback
 
 
+### 5. Tool Use
+**Location:** `Design Patterns/5. Tool Use/`
+
+Enable agents to extend their capabilities by deciding when and how to use external tools, APIs, or functions. The LLM intelligently chooses which tools to invoke based on the user's request, executes them with appropriate parameters, and incorporates the results into its response.
+
+**Use cases:**
+- Accessing real-time or up-to-date information beyond training data
+- Performing precise calculations (math, data operations)
+- Interacting with external APIs, databases, or services
+- Triggering real-world actions (sending emails, creating tickets)
+- Delegating specialized tasks to other agents or tools
+
+
+### 6. Planning
+**Location:** `Design Patterns/6. Planning/`
+
+Break down complex goals into structured, sequential plans with clear steps, dependencies, and effort estimates. This pattern transforms high-level objectives into actionable roadmaps, enabling goal-oriented behavior rather than reactive responses.
+
+**Use cases:**
+- Complex goals requiring multiple coordinated steps
+- Project planning and task decomposition
+- Scenarios where the "how" needs to be discovered, not prescribed
+- Breaking ambiguous objectives into concrete actions
+- Dynamic environments where plans may need adjustment
+
+
+### 7. Multi-Agent Collaboration
+**Location:** `Design Patterns/7. Multi Agent Collaboration/`
+
+Structure systems as cooperative ensembles of specialized agents, each with distinct roles and expertise. Agents collaborate through sequential handoffs, parallel processing, or hierarchical coordination to accomplish tasks that exceed single-agent capabilities.
+
+**Use cases:**
+- Complex, multi-domain tasks requiring diverse expertise
+- Content creation pipelines (research → writing → editing)
+- Tasks that naturally decompose into specialized sub-tasks
+- Systems requiring resilience through distributed processing
+- Scenarios where agent specialization improves quality
+- Modular architectures with clear separation of concerns
+
+
 ## Getting Started
 
 ### Prerequisites
@@ -64,7 +104,7 @@ Enable agents to evaluate and iteratively improve their own outputs through a Pr
 
 - **[LangChain](https://python.langchain.com/)** - Framework for building LLM applications
 - **[LangGraph](https://langchain-ai.github.io/langgraph/)** - Framework for building stateful, multi-agent workflows with cycles
-- **[OpenAI](https://openai.com/)** - LLM provider (GPT-4o-mini)
+- **[OpenAI](https://openai.com/)** - LLM provider
 - **[Python-dotenv](https://github.com/theskumar/python-dotenv)** - Environment configuration
 - **[Pydantic](https://docs.pydantic.dev/)** - Data validation and structured outputs
 
@@ -73,5 +113,6 @@ Enable agents to evaluate and iteratively improve their own outputs through a Pr
 - [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction)
 - [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
 - [OpenAI API Documentation](https://platform.openai.com/docs/introduction)
-- [Agentic AI Patterns Guide](https://www.anthropic.com/research/building-effective-agents)
+- [Anthropic - Agentic AI Patterns Guide](https://www.anthropic.com/research/building-effective-agents)
+- [Agentic Design Patterns: A Hands-On Guide to Building Intelligent Systems, Antonio Gulli](https://docs.google.com/document/d/1rsaK53T3Lg5KoGwvf8ukOUvbELRtH-V0LnOIFDxBryE/)
 
