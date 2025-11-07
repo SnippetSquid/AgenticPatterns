@@ -12,7 +12,8 @@
       "Bash(git push)",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "WebFetch(domain:arxiv.org)"
     ],
     "deny": [],
     "ask": []
